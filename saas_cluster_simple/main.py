@@ -64,6 +64,7 @@ def create_db(template_db, db_name, demo, lang="en_US", **kw):
             db.exp_duplicate_database(template_db, db_name)
         else:
             db.exp_create_database(db_name, demo, lang)
+        
 
 
 def drop_db(db_name):

@@ -224,15 +224,8 @@ class SAASTemplateLine(models.Model):
 
         self.env['saas.log'].log_db_creating(build, self.operator_db_id)
         if with_delay:
-            job_create = build.delayable().create_db(
-                self.operator_db_name, self.template_id.template_demo,
-            )
-            job_install_modules = build.delayable().action_install_missing_mandatory_modules()
-
-            job_build_post_init= self.operator_id.delayable().build_post_init(
-                    build, self.template_id.build_post_init, key_values
-                )
-            job_create.on_done(job_install_modules.on_done(job_build_post_init)).delay()
+            
+            self.create_db_with_delay(build,key_values)
         else:
             build.create_db(
                 self.operator_db_name,
@@ -253,3 +246,16 @@ class SAASTemplateLine(models.Model):
     def action_install_missing_mandatory_modules(self):
         for record in self:
             record.operator_db_id.action_install_missing_mandatory_modules()
+
+
+    def create_db_with_delay(self,build,key_values):
+        self.ensure_one()
+        job_create = build.delayable().create_db(
+                self.operator_db_name, self.template_id.template_demo,
+            )
+        job_install_modules = build.delayable().action_install_missing_mandatory_modules()
+
+        job_build_post_init= self.operator_id.delayable().build_post_init(
+                    build, self.template_id.build_post_init, key_values
+                )
+        job_create.on_done(job_install_modules.on_done(job_build_post_init)).delay()
